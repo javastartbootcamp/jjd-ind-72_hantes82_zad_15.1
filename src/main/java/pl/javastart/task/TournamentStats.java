@@ -6,12 +6,17 @@ import java.util.*;
 
 public class TournamentStats {
 
-    void run(Scanner scanner) throws IncorrectDataException {
+    void run(Scanner scanner) {
         // tutaj dodaj swoje rozwiązanie
         // użyj przekazanego scannera do wczytywania wartości
-        List<User> competitors = Competition.addCompetitors(scanner);
-        int [] sortMethod = Competition.chooseSortMethod(scanner);
-        Competition.sortCompetitors(competitors, sortMethod);
-        System.out.println(competitors);
+        try {
+            String filePath = "stats.csv";
+            List<User> competitors = Competition.addCompetitors(scanner);
+            Comparator<User> sortMethod = Competition.chooseSortMethod(scanner);
+            competitors.sort(sortMethod);
+            FileOperations.writeToFile(competitors, filePath);
+        } catch (IncorrectDataException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }

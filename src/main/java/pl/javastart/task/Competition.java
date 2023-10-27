@@ -8,6 +8,11 @@ import pl.javastart.task.exceptions.IncorrectDataException;
 import java.util.*;
 
 public class Competition {
+    static final int FIRST_NAME_SORT = 1;
+    static final int LAST_NAME_SORT = 2;
+    static final int RESULT_SORT = 3;
+    static final int ASCENDING = 1;
+    static final int DESCENDING = 2;
 
     public static List<User> addCompetitors(Scanner scan) throws IncorrectDataException {
         List<User> competitors = new ArrayList<>();
@@ -15,74 +20,42 @@ public class Competition {
         do {
             System.out.println("Podaj wynik kolejnego gracza (lub stop):");
             line = scan.nextLine();
-
             String [] tempArray = line.split(" ");
-            if (tempArray.length != 3 && !line.equals("stop")) {
+            if (tempArray.length != 3 && !line.equalsIgnoreCase("stop")) {
                 throw new IncorrectDataException("Podano nieprawidłowe dane");
-            } else if (line.equals("stop")) {
+            } else if (line.equalsIgnoreCase("stop")) {
                 break;
             } else {
                 competitors.add(new User(tempArray[0], tempArray[1], Integer.parseInt(tempArray[2])));
             }
-        } while (!line.equals("continue"));
+        } while (!line.equalsIgnoreCase("stop"));
         return competitors;
     }
 
-    public static int[] chooseSortMethod(Scanner scanner) {
-        scanner = new Scanner(System.in);
-        int[] sortType = new int[2];
+    public static Comparator<User> chooseSortMethod(Scanner scanner) {
+        int sortType;
         do {
             System.out.println("Po jakim parametrze posortować? (1 - imię, 2 - nazwisko, 3 - wynik)");
-            sortType[0] = scanner.nextInt();
+            sortType = scanner.nextInt();
             scanner.nextLine();
-        } while (sortType[0] < 1 || sortType[0] > 3);
+        } while (sortType < FIRST_NAME_SORT || sortType > RESULT_SORT);
+        Comparator<User> comparator = switch (sortType) {
+            case FIRST_NAME_SORT -> new FirstNameComparator();
+            case LAST_NAME_SORT -> new LastNameComparator();
+            default -> new ResultComparator();
+        };
+
+        int sortOrder;
+
         do {
             System.out.println("Sortować rosnąco czy malejąco? (1 - rosnąco, 2 - malejąco)");
-            sortType[1] = scanner.nextInt();
+            sortOrder = scanner.nextInt();
             scanner.nextLine();
-        } while (sortType[1] < 1 || sortType[1] > 2);
-        return sortType;
-    }
-
-    public static List<User> sortCompetitors(List<User> competitors, int[]sortMethod) {
-        switch (sortMethod[0]) {
-            case 1:
-                switch (sortMethod[1]) {
-                    case 1:
-                        Collections.sort(competitors, new FirstNameComparator());
-                        break;
-                    case 2:
-                        Collections.sort(competitors, new FirstNameComparator());
-                        Collections.reverse(competitors);
-                        break;
-                    default:
-                        break;
-                }
-            case 2:
-                switch (sortMethod[1]) {
-                    case 1:
-                        Collections.sort(competitors, new LastNameComparator());
-                        break;
-                    case 2:
-                        Collections.sort(competitors, new LastNameComparator());
-                        Collections.reverse(competitors);
-                        break;
-                    default:
-                        break;
-                }
-            case 3:
-                switch (sortMethod[1]) {
-                    case 1:
-                        Collections.sort(competitors, new ResultComparator());
-                        break;
-                    case 2:
-                        Collections.sort(competitors, new ResultComparator());
-                        Collections.reverse(competitors);
-                        break;
-                    default:
-                        break;
-                }
+        } while (sortOrder  < ASCENDING || sortOrder  > DESCENDING);
+        if (sortOrder == DESCENDING) {
+            Comparator<User> comparatorReversed = comparator.reversed();
+            return comparatorReversed;
         }
-        return competitors;
+        return comparator;
     }
 }
